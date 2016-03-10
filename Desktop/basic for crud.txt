@@ -1,0 +1,336 @@
+1.install-entityframework
+2.Add entity in Model Folder
+3.Context Folder Add AppDbConnection
+4.Web.Config Add Connection String
+5.enable-migrations
+6.add list in Configuration of Migration Folder
+7.add-migration MigrationName
+8.update-database
+9.Repository Folder Add IGenericRepository and other Repo
+10.Service Folder Add IGeneric Service and other Service
+
+
+
+
+
+
+
+--------------Context Folder--------------------
+
+ public class AppDbConnection:DbContext
+    {
+        public AppDbConnection()
+            :base("DefaultConnection")
+        {
+
+        }
+        public DbSet<User> Users { get; set; }
+    }
+
+
+
+---------------web.config---------------
+
+ <connectionStrings>
+    <add name="DefaultConnection" connectionString="Server=DESKTOP-I0I27OA\LOCALHOST;Database=db_test;User Id=sa; Password=sa123;" providerName="System.Data.Sqlclient" />
+  </connectionStrings>
+
+
+
+----------------------configuration.cs------------------
+
+ List<Department> dList= new List<Department>()
+            {
+                new Department()
+                {
+                  Name="Marketing",
+                  Job="Marketing",
+                  Location="Jamal",
+                   Status=true
+                },
+
+                new Department()
+                {
+                  Name="Sales",
+                  Job="Sales",
+                  Location="Dillibazar",
+                   Status=true
+                },
+                 new Department()
+                {
+                  Name="Advertising",
+                  Job="Advertising",
+                  Location="Gongabu",
+                  Status=false
+                }
+            };
+
+            dList.ForEach(d =>
+                {
+                    context.Departments.Add(d);
+                    context.SaveChanges();
+                });
+
+
+
+
+----------------Repository Folder----IGeneric Repository----------
+ public interface IGenericRepository<T> where T : class
+    {
+        void Insert(T t);
+        void Delete(int id);
+        void Update(T t);
+        T GetById(int id);
+        IEnumerable<T> GetAll();
+        
+
+    }
+
+
+
+
+-------------------Repository Folder----CourseRepository----------
+
+
+using Deven.Web.Application123.Context;
+using Deven.Web.Application123.Models;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Web;
+
+namespace Deven.Web.Application123.Repository
+{
+    public interface ICourseRepository:IGenericRepository<Course>
+    {
+
+    }
+    public class CourseRepository:ICourseRepository
+    {
+        private AppDbConnection conn = new AppDbConnection();
+        public void Insert(Course t)
+        {
+            conn.Courses.Add(t);
+        }
+
+        public void Delete(int id)
+        {
+            Course c = GetById(id);
+            conn.Courses.Remove(c);
+        }
+
+        public void Update(Course t)
+        {
+            conn.Entry(t).State = EntityState.Modified;
+        }
+
+        public Course GetById(int id)
+        {
+            return conn.Courses.Find(id);
+        }
+
+        public IEnumerable<Course> GetAll()
+        {
+            return conn.Courses.ToList();
+        }
+    }
+
+
+}
+
+
+
+-----------------IGenericService-------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Deven.Web.Application123.Service
+{
+    public interface IGenericService<T> where T : class
+    {
+        void Insert(T t);
+        void Update(T t);
+        void Delete(int id);
+        T GetById(int id);
+        IEnumerable<T> GetAll();
+    }
+}
+
+
+
+
+
+
+----------------------------CourseService------------------------
+using Deven.Web.Application123.Models;
+using Deven.Web.Application123.Repository;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Deven.Web.Application123.Service
+{
+    public interface ICourseService:IGenericService<Course>
+    {
+
+    }
+    public class CourseService:ICourseService
+    {
+        private CourseRepository cRepo = new CourseRepository();
+        public void Insert(Course t)
+        {
+            cRepo.Insert(t);
+        }
+
+        public void Update(Course t)
+        {
+            cRepo.Update(t);
+        }
+
+        public void Delete(int id)
+        {
+            cRepo.Delete(id);
+        }
+
+        public Course GetById(int id)
+        {
+            return cRepo.GetById(id);
+        }
+
+        public IEnumerable<Course> GetAll()
+        {
+            return cRepo.GetAll();
+        }
+    }
+}
+
+
+=====================install-package unity.mvc==========================
+
+unityconfig and unitymvcactivator App_Start delete
+unityconfi add------  container.RegisterType<ICustomerService, CustomerService>();
+            container.RegisterType<ICategoryService, CategoryService>();
+
+
+======================add controller folder============================
+
+
+
+
+controller code see and do from video
+=================add view==========change index.cshntml
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Sample.Application.Context;
+using Sample.Application.Service;
+
+namespace Sample.Application.Controllers
+{
+    public class EmailController : Controller
+    {
+         private EmailService emailService;
+
+        private AppDbConnection db = new AppDbConnection();
+        public EmailController(EmailService emailService)
+        {
+            this.emailService = emailService;
+        }
+        // GET: Email
+        public ActionResult Index()
+        {
+            return View(emailService.GetAll());
+        }
+
+        // GET: Email/Details/5
+        public ActionResult Details(int id)
+        {
+            return View();
+        }
+
+        // GET: Email/Create
+        public ActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Email/Create
+        [HttpPost]
+        public ActionResult Create(FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add insert logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        // GET: Email/Edit/5
+        public ActionResult Edit(int id)
+        {
+            return View();
+        }
+
+        // POST: Email/Edit/5
+        [HttpPost]
+        public ActionResult Edit(int id, FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add update logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        // GET: Email/Delete/5
+        public ActionResult Delete(int id)
+        {
+            return View();
+        }
+
+        // POST: Email/Delete/5
+        [HttpPost]
+        public ActionResult Delete(int id, FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add delete logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+bootstrap bootstrap modal and bootstrap button-checkbox
